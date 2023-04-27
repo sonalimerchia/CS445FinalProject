@@ -2,9 +2,20 @@ from scipy.spatial import Delaunay
 import cv2
 import numpy as np
 
-NUM_FEATURE_POINTS = 20
+NUM_FEATURE_POINTS = 20 # a full face should have 20 feature points
 
 def get_facial_feature_points(face, x, y, w, h):
+    '''
+    Finds feature points in the input face image.
+    Input:
+        - face: a black and white image of a face
+        - x: the x coordinate of the top left corner of the face image relative to the larger image
+        - y: the y coordinate of the top left corner of the face image relative to the larger image
+        - w: the width of the face image
+        - h: the height of the face image
+    Output:
+        - feature_points: a 2D numpy array in which each row is an (x,y) coordinate pair representing a feature point
+    '''
     eyes_cascade = cv2.CascadeClassifier()
     mouth_cascade = cv2.CascadeClassifier()
 
@@ -43,12 +54,22 @@ def get_facial_feature_points(face, x, y, w, h):
 
     return np.array(feature_points)
 
-
 def create_triangulations(image):
+    '''
+    Creates a Delaunay triangulation for each face found in the input image.
+    Input:
+        - image: a black and white image
+    Output:
+        - triangulations: a list of tuples (one tuple per full face found in the image) of the form (feature_points, simplices)
+    '''
     face_cascade = cv2.CascadeClassifier()
+
+    # use an opencv pretrained model for the face classifier
     face_cascade.load(cv2.samples.findFile(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml'))
+
     # detect faces
     faces = face_cascade.detectMultiScale(image)
+
     triangulations = []
     
     for (x, y, w, h) in faces:
