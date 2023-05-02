@@ -74,7 +74,7 @@ def get_bounding_box(points, simplexes, H, W):
     topleft = triangles.min(axis=1)
 
     # Add 1 to handle minor discrepancies between matplotlib triangulation and cv2 affine transformation
-    bottomright = triangles.max(axis=1) + 1 
+    bottomright = triangles.max(axis=1) + 1
 
     # Make sure the coordinates fall within the image
     # (might not due to rounding issues)
@@ -106,7 +106,7 @@ def get_morphed_image(initial_pts, interpolated_pts, simplexes, image):
 
     # Determine affine transformations from initial points to interpolated points
     Ts = get_transformations(initial_pts, interpolated_pts, simplexes)
-    masks, _ = get_masks(interpolated_pts, simplexes, (H, W), image.dtype)
+    masks, _ = get_masks(initial_pts, simplexes, (H, W), image.dtype)
     
     # Make mask work if more than 1 color channel
     if len(image.shape) > 2: 
@@ -127,11 +127,10 @@ def get_morphed_image(initial_pts, interpolated_pts, simplexes, image):
         [yp2, xp2] = bottomright_final[simplex_idx]
 
         input_image = image[x1:x2, y1:y2]
-        warped_img = cv2.warpAffine(input_image, Ts[simplex_idx], (yp2-yp1, xp2-xp1))
-        
-        # Mask triangular
-        warped_img *= masks[simplex_idx][xp1:xp2, yp1:yp2]
-        output_img[xp1:xp2, yp1:yp2] += warped_img
+        warped = cv2.warpAffine(input_image, Ts[simplex_idx], (yp2-yp1, xp2-xp1))
+        warped *= cv2.warpAffine(masks[simplex_idx][x1:x2, y1:y2], Ts[simplex_idx], (yp2-yp1, xp2-xp1))
+
+        output_img[xp1:xp2, yp1:yp2] += warped
 
     # Return image as same type given (might be given as uint and averaging messed it up)
     return output_img.astype(image.dtype)
