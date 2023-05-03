@@ -94,8 +94,10 @@ def get_morphed_image(initial_pts, interpolated_pts, simplexes, image):
         simplexes: the simplexes for the triangular mesh [num_simplexes, 3]
         image: the image to be morphed [image_height, image_width] or [image_height, image_width, color_channels]
     Output: 
-        a warped image of the same size where the contents of each triangle in the mesh are the
+        A tuple with the following elements: 
+        0: a warped image of the same size where the contents of each triangle in the mesh are the
             affine transformations of the corresponding triangles in the initial images.
+        1: a mask such that [x, y] is 1 if some point in the warping contributes to that pixel
     '''
     H, W = image.shape[0], image.shape[1]
     num_simplexes = simplexes.shape[0]
@@ -114,6 +116,7 @@ def get_morphed_image(initial_pts, interpolated_pts, simplexes, image):
         masks = np.stack((masks, masks, masks), axis=3)
 
     output_img = np.zeros(image.shape)
+    output_mask = np.zeros(image.shape)
 
     # Determine bounding boxes of triangles
     topleft_inits, bottomright_inits = get_bounding_box(initial_pts, simplexes, H, W)
@@ -126,11 +129,27 @@ def get_morphed_image(initial_pts, interpolated_pts, simplexes, image):
         [yp1, xp1] = topleft_final[simplex_idx]
         [yp2, xp2] = bottomright_final[simplex_idx]
 
-        input_image = image[x1:x2, y1:y2]
-        warped = cv2.warpAffine(input_image, Ts[simplex_idx], (yp2-yp1, xp2-xp1))
-        warped *= cv2.warpAffine(masks[simplex_idx][x1:x2, y1:y2], Ts[simplex_idx], (yp2-yp1, xp2-xp1))
+        if x2-x1 <= 0 or y2-y1 <= 0 or yp2-yp1 <= 0 or xp2-xp1 <= 0: 
+            continue
 
-        output_img[xp1:xp2, yp1:yp2] += warped
+        input_image = image[x1:x2, y1:y2]
+        input_mask = masks[simplex_idx][x1:x2, y1:y2]
+        warped_image = cv2.warpAffine(input_image, Ts[simplex_idx], (yp2-yp1, xp2-xp1))
+        warped_mask = cv2.warpAffine(input_mask, Ts[simplex_idx], (yp2-yp1, xp2-xp1))
+
+        xp2 = min(xp2, xp1 + output_img[xp1:xp2].shape[0])
+        yp2 = min(yp2, yp1 + output_img[xp1:xp2][yp1:yp2].shape[1])
+
+        w = xp2-xp1
+        h = yp2-yp1
+
+        if w == 0 or h == 0: 
+            continue
+        
+        output_img[xp1:xp2, yp1:yp2] += warped_image[:w, :h] * warped_mask[:w, :h]
+        output_mask[xp1:xp2, yp1:yp2] += warped_mask[:w, :h]
+
+    output_mask = np.clip(output_mask, 0, 1)
 
     # Return image as same type given (might be given as uint and averaging messed it up)
-    return output_img.astype(image.dtype)
+    return output_img.astype(image.dtype), output_mask
