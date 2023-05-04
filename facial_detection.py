@@ -114,6 +114,9 @@ def detect_faces(image_name):
 
     # Determine rought initial binding box
     gray_image = cv2.cvtColor(cv2.imread(image_name), cv2.COLOR_BGR2GRAY)
+    if type(gray_image) == type(None) or gray_image.size == 0: 
+        return [], [], []
+
     bounds_list = get_face_bounds(gray_image)
 
     keypoints_cropped = [] 
@@ -129,7 +132,11 @@ def detect_faces(image_name):
 
         # Resize image and get facial landmarks
         face = cv2.resize(face, (500, 500))
-        new_bounds = get_face_bounds(face)[0]
+        new_bounds = get_face_bounds(face)
+        if len(new_bounds) == 0: 
+            continue 
+        
+        new_bounds = new_bounds[0]
         keypoints = get_facial_landmarks(face, new_bounds)
 
         # Make sure all facial landmarks fall within the image and add one to each of 

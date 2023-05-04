@@ -31,20 +31,21 @@ def load_images(image_names):
 
     print('Loading images...')
     for i in tqdm(image_names): 
-        keypoints_cropped, cropped_faces, bounds_lst = facial_detection.detect_faces(i)
-        if len(keypoints_cropped) == 0: 
-            failed_names.append(i) 
-            continue
+        try: 
+            keypoints_cropped, cropped_faces, bounds_lst = facial_detection.detect_faces(i)
+            if len(keypoints_cropped) == 0: 
+                failed_names.append(i) 
+                continue
 
-        im = cv2.imread(i)
-        for pts, bds in zip(keypoints_cropped, bounds_lst): 
-            keypoints.append(pts)
-            faces.append(facial_detection.recrop(im, *bds))
-        
+            im = cv2.imread(i)
+            for pts, bds in zip(keypoints_cropped, bounds_lst): 
+                keypoints.append(pts)
+                faces.append(facial_detection.recrop(im, *bds))
+        except: 
+            failed_names.append(i)
+
     if len(failed_names) > 0: 
-        print("Failed to read/find faces in:")
-        for f in failed_names: 
-            print(f)
+        print("Failed to read/find faces in:", failed_names)
 
     return keypoints, faces
 
@@ -91,6 +92,8 @@ if __name__ == "__main__":
     if len(keypoints) < 2: 
         print("Found", len(keypoints), "faces. Not enough for morphing")
         exit()
+    else: 
+        print("Found", len(faces), "faces")
 
     frames = make_transitions(keypoints, faces)
     video_util.vidwrite_from_numpy(args.output, frames[:, :, :, [2, 1, 0]])

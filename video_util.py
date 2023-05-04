@@ -1,9 +1,9 @@
 import numpy as np
 import ffmpeg
 
-''''
+'''
 Copied from utils.py provided with MP5
-''''
+'''
 
 def vidwrite_from_numpy(fn, images, framerate=24, vcodec='libx264'):
     '''
