@@ -50,7 +50,7 @@ def get_face_bounds(image):
         the rectangle object representing the bounding box that holds the face
     '''
     global detector
-    return detector(image, 1)[0]
+    return detector(image, 1)
 
 def get_facial_landmarks(image, rect): 
     '''
@@ -86,7 +86,7 @@ def detect_face(image_name):
     
     # Determine rought initial binding box
     gray_image = cv2.cvtColor(cv2.imread(image_name), cv2.COLOR_BGR2GRAY)
-    bounds = get_face_bounds(gray_image)
+    bounds = get_face_bounds(gray_image)[0]
     init_keypoints = get_facial_landmarks(gray_image, bounds)
 
     # Make sure all face points are within the box
@@ -95,7 +95,7 @@ def detect_face(image_name):
 
     # Resize image and get facial landmarks
     cropped_face = cv2.resize(cropped_face, (500, 500))
-    new_bounds = get_face_bounds(cropped_face)
+    new_bounds = get_face_bounds(cropped_face)[0]
     keypoints_cropped = get_facial_landmarks(cropped_face, new_bounds)
 
     # Make sure all facial landmarks fall within the image and add one to each of 
@@ -104,6 +104,44 @@ def detect_face(image_name):
     keypoints_cropped = np.append(keypoints_cropped, [[0, 0], [0, 499], [499, 499], [499, 0]], axis=0)
 
     return keypoints_cropped, cropped_face, (bounds, required_pts) 
+
+def detect_faces(image_name): 
+    '''
+    The plural version of detect_face. Takes same parameters but each of the return items 
+    are replaced with a list of the initial return item from detect_face. One item for each face 
+    found in the photograph. 
+    '''
+
+    # Determine rought initial binding box
+    gray_image = cv2.cvtColor(cv2.imread(image_name), cv2.COLOR_BGR2GRAY)
+    bounds_list = get_face_bounds(gray_image)
+
+    keypoints_cropped = [] 
+    cropped_faces = []
+    bounds_objs = []
+
+    for bounds in bounds_list:
+        init_keypoints = get_facial_landmarks(gray_image, bounds)
+
+        # Make sure all face points are within the box
+        required_pts = [init_keypoints.min(axis=0).astype('int64'), init_keypoints.max(axis=0).astype('int64')]
+        face = crop_to_bounds(gray_image, bounds, required_pts)
+
+        # Resize image and get facial landmarks
+        face = cv2.resize(face, (500, 500))
+        new_bounds = get_face_bounds(face)[0]
+        keypoints = get_facial_landmarks(face, new_bounds)
+
+        # Make sure all facial landmarks fall within the image and add one to each of 
+        # the corners so the background also shifts and morphs
+        keypoints = np.clip(keypoints, 0, 499)
+        keypoints = np.append(keypoints, [[0, 0], [0, 499], [499, 499], [499, 0]], axis=0)
+
+        keypoints_cropped.append(keypoints)
+        cropped_faces.append(face)
+        bounds_objs.append((bounds, required_pts))
+
+    return keypoints_cropped, cropped_faces, bounds_objs
 
 def recrop(image, bounds, required_pts): 
     '''

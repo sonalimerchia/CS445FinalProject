@@ -28,9 +28,6 @@ def dissolve(im1interp, im2interp, cropped_images):
     keypoints2 = im2interp[0][0]
     simplex2 = im2interp[0][1]
 
-    # Convert to LAB color space for smoother transition
-    cropped_images = [cv2.cvtColor(image, cv2.COLOR_BGR2LAB) for image in cropped_images]
-
     # Store warped images at each point
     warped_images = np.zeros((num_images, num_interpolations + 1, *image_size))
     warped_mask = np.zeros((num_images, num_interpolations + 1, *image_size))
@@ -51,21 +48,19 @@ def dissolve(im1interp, im2interp, cropped_images):
     factor = 1 / num_interpolations
     contributions = warped_mask.sum(axis=0)
 
-    # Determine regions where both images exist (and should be cross dissolved)
-    # versus where only one image exists (and should dominate)
-    normal_mask = contributions == 2
-    fill_mask = np.logical_not(normal_mask)
+    # Try to fill holes with contents from other image
+    warped_images[0] = np.logical_and(warped_mask[0] == 0, contributions > 0)  * warped_images[1] + (warped_mask[0] == 1) * warped_images[0]
+    warped_images[1] = np.logical_and(warped_mask[1] == 0, contributions > 0) * warped_images[0] + (warped_mask[1] == 1) * warped_images[1]
 
     # Set morphed image at different time periods to be weighted averages of warped images
     for time_idx, image in enumerate(warped_images[0]): 
-        image_progression[time_idx] = image * (1-time_idx*factor) * normal_mask[time_idx] + image * fill_mask[time_idx]
+        image_progression[time_idx] = image * (1-time_idx*factor)
         
     for time_idx, image in enumerate(warped_images[1]): 
-        image_progression[time_idx] += image * time_idx * factor * normal_mask[time_idx] + image * fill_mask[time_idx]
+        image_progression[time_idx] += image * time_idx * factor
     
-    # Convert back to BGR
-    for time_idx, image in enumerate(image_progression): 
-        image_progression[time_idx] = cv2.cvtColor(image.astype(cropped_images[0].dtype), cv2.COLOR_LAB2BGR)
+    # Set places where both images don't effect color to black
+    image_progression[np.where(contributions == 0)] = 0
 
-    return image_progression.astype(cropped_images[0].dtype)
+    return image_progression.astype(cropped_images[0].dtype) # (contributions * 255/2).astype(cropped_images[0].dtype)[:, 300:400, 150:300, :]
         
