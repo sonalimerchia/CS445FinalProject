@@ -1,8 +1,8 @@
 # CS445FinalProject
 
-To run the `.ipynb` file, be sure to unzip `shape_predictor_68_face_landmarks.dat.bz2` first.
+There is an example to look at the steps implemented by the module in `face_morphing.ipynb` and a utility to generate morphing videos from a folder of images. 
 
-Make sure you have the following python modules installed:
+To run either of these files, be sure to unzip `shape_predictor_68_face_landmarks.dat.bz2` first and make sure you have the following python modules installed:
 
 1. OpenCV (`cv2`)
 2. NumPy (`numpy`)
