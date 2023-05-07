@@ -146,10 +146,11 @@ def get_morphed_image(initial_pts, interpolated_pts, simplexes, image):
         if w == 0 or h == 0: 
             continue
         
+        warped_mask[:w, :h] *= (1 - output_mask[xp1:xp2, yp1:yp2]).astype(np.uint8)
         output_img[xp1:xp2, yp1:yp2] += warped_image[:w, :h] * warped_mask[:w, :h]
         output_mask[xp1:xp2, yp1:yp2] += warped_mask[:w, :h]
 
     output_mask = np.clip(output_mask, 0, 1)
 
     # Return image as same type given (might be given as uint and averaging messed it up)
-    return output_img.astype(image.dtype), output_mask
+    return (output_img * output_mask).astype(image.dtype), output_mask
