@@ -1,15 +1,17 @@
-# CS445FinalProject
+# CS445 Final Project
 
 There is an example to look at the steps implemented by the module in `face_morphing.ipynb` and a utility to generate morphing videos from a folder of images. 
 
-To run either of these files, be sure to unzip `shape_predictor_68_face_landmarks.dat.bz2` first and make sure you have the following python modules installed:
+To run either of these files, be sure to unzip `shape_predictor_68_face_landmarks.dat.bz2` first and make sure you run the following:
 
-1. OpenCV (`cv2`)
-2. NumPy (`numpy`)
-3. matplotlib
-4. SciPy (`scipy`)
-5. dlib
-6. ffmpeg
+```
+virtualenv venv
+source venv/bin/activate
+
+pip install -r requirements.txt
+```
+
+If you run into an issue with dlib, you will have to run `xcode-select --install` on MacOS first. On Windows, you will have to make sure CMake is in the PATH.
 
 Then you can generate a video by passing in a folder path and output video file name as arguments like so:
 `python3 morphing_video.py --directory=images/ --output=video.mp4`
