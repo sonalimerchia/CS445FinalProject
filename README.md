@@ -2,7 +2,7 @@
 
 There is an example to look at the steps implemented by the module in `face_morphing.ipynb` and a utility to generate morphing videos from a folder of images. 
 
-To run either of these files, be sure to download and unzip [https://github.com/davisking/dlib-models/raw/master/shape_predictor_68_face_landmarks.dat.bz2](`shape_predictor_68_face_landmarks.dat.bz2`) first and make sure you run the following:
+To run either of these files, be sure to download and unzip [`shape_predictor_68_face_landmarks.dat.bz2`](https://github.com/davisking/dlib-models/raw/master/shape_predictor_68_face_landmarks.dat.bz2) first and make sure you run the following:
 
 ```
 virtualenv venv
