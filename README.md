@@ -18,4 +18,4 @@ Then you can generate a video by passing in a folder path and output video file 
 
 [Here](https://drive.google.com/file/d/1o78dOknVlOmbZJe0vrzJbhzmmnlnIY-d/view?usp=share_link) is an example video made with 392 faces from the `00` portion of the [images dataset](https://data.vision.ee.ethz.ch/cvl/rrothe/imdb-wiki/) scraped off wikipedia.
 
-Since particularly pixelated images aren't very aesthetically pleasing, [here]() is an identical video made from the same dataset but requiring each face to be at least 100x100 pixels. There were 216 faces that met this requirement.
+Since particularly pixelated images aren't very aesthetically pleasing, [here](https://drive.google.com/file/d/1L5Nl5nxCpfIFZF1Lb-IwHsohh5UAepo1/view?usp=share_link) is an identical video made from the same dataset but requiring each face to be at least 100x100 pixels. There were 216 faces that met this requirement.
